@@ -1,0 +1,32 @@
+from scapy.all import ARP, Ether, srp
+
+def scan(ip_range):
+    arp_request = ARP(pdst=ip_range)
+    broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+    packet = broadcast / arp_request
+
+    result = srp(packet, timeout=2, verbose=False)[0]
+
+    devices = []
+
+    for sent, received in result:
+        devices.append({
+            "ip": received.psrc,
+            "mac": received.hwsrc
+        })
+
+    return devices
+
+def print_result(results):
+    print("-" * 40)
+    print("{:<20} {:<20}".format("IP Address", "MAC Address"))
+    print("-" * 40)
+
+    for device in results:
+        print("{:<20} {:<20}".format(device["ip"], device["mac"]))
+
+if __name__ == "__main__":
+    target = input("Enter IP Range (Example: 192.168.1.1/24): ")
+
+    scanned_devices = scan(target)
+    print_result(scanned_devices)
